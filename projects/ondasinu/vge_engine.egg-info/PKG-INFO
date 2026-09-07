@@ -1,0 +1,266 @@
+Metadata-Version: 2.4
+Name: vge-engine
+Version: 0.1.0
+Summary: Terminal-first simulation and optimization engine for explicit state dynamics.
+Author: BlackMamba
+License: MIT
+Keywords: simulation,optimization,dynamics,terminal,vge
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: pytest-cov>=5.0; extra == "dev"
+Requires-Dist: ruff>=0.5; extra == "dev"
+
+# VGE Engine
+
+**VGE Engine** (*Vortex Geometry Engine*) is a digital simulation and optimization engine designed to explore, visualize, and understand complex system dynamics through explicit state modeling, variational principles, and real-time feedback.
+
+It is **not** a physical propulsion device and does **not** claim energy generation. VGE is a motor of states, not matter.
+
+The engine is intentionally built first in a terminal-based environment to prioritize cognitive clarity, observability, and engineering discipline.
+
+---
+
+## Quickstart
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+pytest
+vge run --steps 200 --seed 42
+```
+
+Generate a machine-readable report:
+
+```bash
+vge run --steps 500 --seed 42 --report reports/run.json --json
+```
+
+Expected terminal output includes:
+
+```txt
+VGE RUN
+step: 200
+cost: ...
+stable: ...
+convergence: ...
+```
+
+---
+
+## Current Executable Modules
+
+```txt
+vge/
+├── cli.py                 # vge command line interface
+├── core/
+│   ├── state.py           # immutable serializable EngineState
+│   ├── dynamics.py        # explicit deterministic transition rules
+│   ├── cost.py            # explainable cost/action scoring
+│   ├── evaluator.py       # stability and convergence checks
+│   └── runner.py          # simulation loop and RunReport
+└── viz/
+    └── terminal.py        # ASCII terminal instrumentation
+
+tests/
+├── test_state.py
+├── test_runner.py
+└── test_cli.py
+```
+
+---
+
+## Core Principles
+
+1. **State First**  
+   Everything begins as an explicit, inspectable state.
+
+2. **Dynamics over Heuristics**  
+   Systems evolve through defined transition rules, not vague intuition.
+
+3. **Cost & Action**  
+   Trajectories are evaluated by cost, stability, efficiency, and digital approximations of minimum action.
+
+4. **Simulation Before Deployment**  
+   Nothing is assumed. Everything is tested, logged, compared, and improved.
+
+5. **Visualization as Instrumentation**  
+   Colors, motion, ASCII fields, and terminal animations are tools for measurement, not decoration.
+
+---
+
+## What VGE Is
+
+- A simulation engine
+- A decision and optimization engine
+- A cognitive laboratory
+- A terminal-first experimental system
+- A foundation for future digital engines
+- A controlled environment for testing state dynamics
+
+---
+
+## What VGE Is Not
+
+- A physical gravity engine
+- An energy generator
+- A metaphysical or spiritual system
+- A perpetual motion device
+- A replacement for scientific validation
+- A system based on hidden or unverifiable variables
+
+---
+
+## High-Level Architecture
+
+```txt
+State  →  Dynamics  →  Cost / Action  →  Evaluation  →  Output
+   ↑                                                     ↓
+   └─────────────── Feedback / Visualization ──────────┘
+```
+
+Every cycle must be observable.
+Every variable must be inspectable.
+Every claim must be testable.
+
+---
+
+## Core Modules
+
+### 1. State Module
+
+Defines the complete system state.
+
+Examples:
+
+- particles / tokens
+- abstract energy values
+- time step
+- positions
+- velocities
+- constraints
+- environmental parameters
+
+The state must be serializable, loggable, and reproducible.
+
+---
+
+### 2. Dynamics Module
+
+Defines how the state evolves over time.
+
+Possible dynamics:
+
+- attraction / repulsion
+- momentum / inertia
+- stochastic noise
+- friction / damping
+- constraint correction
+- multi-agent interaction
+- field-based influence
+
+Rules must be explicit. No hidden forces.
+
+---
+
+### 3. Action / Cost Module
+
+Implements the variational core of the engine.
+
+Typical cost terms:
+
+- smoothness of state transitions
+- stability
+- efficiency
+- distance from objective
+- constraint violations
+- energy-like abstract penalties
+- oscillation / chaos detection
+
+This module answers:
+
+```txt
+Which trajectory is better, and why?
+```
+
+---
+
+### 4. Evaluation Module
+
+Monitors whether the system is behaving correctly.
+
+Responsibilities:
+
+- track convergence
+- detect instability
+- compare runs
+- log metrics
+- expose anomalies
+- prevent silent failure
+
+If the system cannot be measured, it cannot be trusted.
+
+---
+
+### 5. Terminal Visualization Module
+
+Renders the system as an observable instrument.
+
+Initial visualization tools:
+
+- ANSI color rendering
+- ASCII particles / fields
+- real-time terminal animation
+- overlays for energy, cost, time, and stability
+- debug panels
+
+Visualization is treated as a measurement layer.
+
+---
+
+## Design Rules
+
+Non-negotiable rules:
+
+```txt
+No hidden state.
+No magic variables.
+No unverifiable claims.
+No energy-free language.
+No metaphysical dependencies.
+Everything measurable.
+Everything debuggable.
+Everything reproducible.
+```
+
+---
+
+## Scientific Discipline
+
+VGE uses strong metaphors only when they can be translated into engineering language.
+
+Every idea must pass this filter:
+
+```txt
+state → dynamics → cost → output
+```
+
+If an idea cannot be expressed in that form, it stays outside the engine until it can be formalized.
+
+---
+
+## Philosophy
+
+VGE Engine exists to understand systems by building them, not by speculating about them.
+
+Clarity is power. Simulation is respect for reality.
+
+---
+
+## Status
+
+VGE Engine is in active early development.
+
+The repository now contains the first executable foundation: package metadata, deterministic simulation core, CLI, terminal renderer, tests, and CI.

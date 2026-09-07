@@ -1,0 +1,2 @@
+[console_scripts]
+vge = vge.cli:main

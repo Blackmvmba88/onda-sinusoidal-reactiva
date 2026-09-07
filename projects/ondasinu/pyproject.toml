@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vge-engine"
+version = "0.1.0"
+description = "Terminal-first simulation and optimization engine for explicit state dynamics."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "BlackMamba" }]
+license = { text = "MIT" }
+keywords = ["simulation", "optimization", "dynamics", "terminal", "vge"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+vge = "vge.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["vge*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
