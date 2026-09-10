@@ -99,6 +99,24 @@ python3 /Volumes/BlackMamba\ Projects/Projects/02-Audio-DSP/ondadspai/ondads.py 
 
 ---
 
+## 🌌 Especificación procedural
+
+La especificación de la waveform simétrica, luminosa y audioreactiva está documentada en:
+
+**[`README_BLACKMAMBA_LUMINOUS_WAVEFORM.md`](README_BLACKMAMBA_LUMINOUS_WAVEFORM.md)**
+
+Principio del motor:
+
+> **La imagen no acompaña a la música: nace de ella.**
+
+Pipeline conceptual:
+
+```text
+audio → waveform → geometry → organism → landscape → world
+```
+
+---
+
 ## 📜 Licencia
 
 Desarrollado bajo la firma **BlackMamba RECORDS / Iyari Gomez (2026)**.
