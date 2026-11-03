@@ -29,3 +29,9 @@ Preview reproducible sin hardware:
 ```
 
 El build verifica la firma con `codesign --verify --strict`. El acceso físico al micrófono de la app requiere la autorización interactiva normal de macOS.
+
+## Personalización (v1.1)
+
+Pulsa **Personalizar**. Edita ambos pies de página y confirma con Enter para verlos en la ventana principal. Puedes vaciarlos para ocultarlos. Elige un tema (Oscuro, Plata, Morado u Océano), una textura (Lisa, Grano, Cuadrícula u Ondas) y un acento hexadecimal `#RRGGBB`. El acento controla el inicio del ciclo cromático de las ondas y los controles. **Guardar** conserva las opciones para próximas aperturas.
+
+Las preferencias se guardan fuera de la aplicación en `~/Library/Application Support/BlackMamba/ONDA/preferences.json`. No se incluyen en el repositorio ni en el instalador. La decoración y los botones de la barra de título pertenecen a macOS; los temas y texturas afectan al contenido de la ventana.
