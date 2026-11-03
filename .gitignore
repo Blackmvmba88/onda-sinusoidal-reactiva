@@ -43,3 +43,8 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# Native macOS build products
+native/build/
+native/dist/
+native/assets/*.iconset/
