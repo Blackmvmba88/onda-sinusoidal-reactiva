@@ -161,6 +161,7 @@ class Onda:
             ax=self.settings_fig.add_axes([.23,y,.69,.055])
             box=TextBox(ax,label+'  ',initial=self.preferences[key],color='#e3e8ef',hovercolor='white')
             box.label.set_color(INK)
+            box.text_disp.set_color("#142032")
             box.on_submit(lambda value,k=key:self.change_preference(k,value))
             self.editors.append(box)
         for key,options,rect in [('theme',list(THEMES),[.12,.17,.32,.25]),
@@ -175,6 +176,7 @@ class Onda:
         self.settings_status=self.settings_fig.text(.07,.105,'Vista previa · los cambios no se guardan hasta pulsar Guardar',fontsize=9,color=MUTED)
         ax=self.settings_fig.add_axes([.68,.025,.24,.055])
         save=Button(ax,'Guardar',color=LIME,hovercolor='#d5ff92')
+        save.label.set_color('#142032')
         save.on_clicked(self.save_preferences); self.editors.append(save)
         self.settings_fig.show()
 
