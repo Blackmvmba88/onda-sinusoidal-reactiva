@@ -3,12 +3,11 @@ import subprocess
 import PyInstaller.utils.osx
 
 # Local signing has no Apple distribution timestamp requirement.
-# Keep the configured certificate and hardened runtime for every bundled binary.
+# Keep the configured certificate for every bundled binary.
+# A local certificate has no Apple Team ID, so do not enable hardened runtime.
 def sign_local(filename, identity=None, entitlements_file=None, deep=False):
     command = ['/usr/bin/codesign', '--force', '--all-architectures',
                '--timestamp=none', '--sign', identity or '-']
-    if identity:
-        command += ['--options', 'runtime']
     if entitlements_file:
         command += ['--entitlements', entitlements_file]
     if deep:
