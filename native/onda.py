@@ -60,9 +60,9 @@ class Onda:
         self.buttons = []
         plt.rcParams.update({'font.family':'sans-serif', 'text.color':INK, 'axes.labelcolor':INK})
         self.fig = plt.figure(figsize=(12,8), facecolor=BG)
-        self.fig.canvas.manager.set_window_title('ONDA · BlackMamba')
-        self.fig.text(.055,.92,'ONDA',fontsize=30,weight='bold')
-        self.fig.text(.215,.925,'BLACKMAMBA  /  AUDIO LAB',fontsize=10,color=MUTED)
+        self.fig.canvas.manager.set_window_title('Iyari Gomez · BlackMamba RECORDS')
+        self.fig.text(.055,.92,'Iyari Gomez',fontsize=28,weight='bold')
+        self.fig.text(.37,.925,'BlackMamba RECORDS',fontsize=12,color=MUTED)
         self.status = self.fig.text(.055,.86,'DEMO · señal sintética' if demo else 'ENTRADA DETENIDA · inicia el micrófono',fontsize=10,color=LIME)
         self.metric = self.fig.text(.73,.91,'— dBFS',fontsize=23,weight='bold')
         self.fig.text(.73,.87,'NIVEL RMS  /  44.1 kHz',fontsize=9,color=MUTED)
@@ -153,7 +153,7 @@ class Onda:
         if self.settings_fig is not None and plt.fignum_exists(self.settings_fig.number):
             self.settings_fig.show(); return
         self.settings_fig=plt.figure(figsize=(8,6),facecolor=BG)
-        self.settings_fig.canvas.manager.set_window_title('ONDA · Personalizar')
+        self.settings_fig.canvas.manager.set_window_title('Iyari Gomez · Personalizar')
         self.settings_fig.text(.07,.91,'Tu ventana, tu estilo',fontsize=20,color=INK,weight='bold')
         self.settings_fig.text(.07,.85,'Edita los textos y pulsa Enter para previsualizar. Máximo 100 caracteres.',color=MUTED,fontsize=9)
         self.editors=[]
