@@ -1,0 +1,30 @@
+{
+  "environment": "Agg rasterization at 1920×1280, demo, 60 measured frames per mode; excludes native compositor and hardware audio",
+  "before": {
+    "Línea": {
+      "median_ms": 65.62,
+      "p95_ms": 71.92
+    },
+    "Círculo": {
+      "median_ms": 63.63,
+      "p95_ms": 82.69
+    }
+  },
+  "after": {
+    "Línea": {
+      "median_ms": 4.89,
+      "p95_ms": 8.14
+    },
+    "Círculo": {
+      "median_ms": 3.6,
+      "p95_ms": 6.42
+    }
+  },
+  "native_timer_demo": {
+    "frames": 180,
+    "median_interval_ms": 16.06,
+    "p95_interval_ms": 18.25,
+    "median_callback_hz": 62.2,
+    "note": "Native macOS source demo at 1920×1280. Callback cadence, not measured display presentation FPS or microphone latency."
+  }
+}

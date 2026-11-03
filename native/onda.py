@@ -2,6 +2,7 @@
 import argparse
 import collections
 import threading
+import time
 import json
 import re
 from pathlib import Path
@@ -15,7 +16,8 @@ else:
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.widgets import Button, Slider, RadioButtons, TextBox
-from matplotlib.colors import hsv_to_rgb
+from matplotlib.colors import hsv_to_rgb, to_rgb, rgb_to_hsv
+from matplotlib.figure import Figure
 
 BG, PANEL, INK, MUTED, LIME = '#090d13', '#141c27', '#edf3fa', '#97a8bc', '#bdff45'
 
@@ -45,6 +47,30 @@ def load_preferences(path):
     except (OSError, ValueError): pass
     return result
 
+class InstrumentFigure(Figure):
+    """Cache static rasterization while retaining the native macOS canvas."""
+    fast_render = False
+    cached_background = None
+    cache_key = None
+    dynamic_artists = ()
+
+    def invalidate(self, event=None):
+        self.cached_background = None
+
+    def draw(self, renderer):
+        if not self.fast_render:
+            return super().draw(renderer)
+        key = (renderer.width, renderer.height, renderer.dpi)
+        if self.cached_background is None or self.cache_key != key:
+            super().draw(renderer)
+            self.cached_background = renderer.copy_from_bbox(self.bbox)
+            self.cache_key = key
+        else:
+            renderer.restore_region(self.cached_background)
+        for artist in self.dynamic_artists:
+            if artist.get_visible(): self.draw_artist(artist)
+        self.stale = False
+
 class Onda:
     def __init__(self, demo=False, preferences_path=None):
         self.preferences_path = Path(preferences_path) if preferences_path else PREFS
@@ -52,14 +78,25 @@ class Onda:
         self.settings_fig = None
         self.editors = []
         self.lock = threading.Lock()
-        self.buffer = np.zeros(2048)
+        self.buffer = np.zeros(2048, dtype=np.float32)
+        self.sample_t = np.arange(2048)/44100
+        self.display_indices = np.arange(2048)
+        self.line_x = self.display_indices/44.1
+        theta = np.linspace(0,2*np.pi,len(self.display_indices))
+        self.circle_cos, self.circle_sin = np.cos(theta), np.sin(theta)
+        self.started_at = time.perf_counter()
+        self.last_metric_at = -1.0
+        self.last_trail_at = -1.0
+        self.color_phase = 0.0
+        self.last_color_at = 0.0
+        self.base_hue = .22
         self.history = collections.deque(maxlen=9)
         self.stream = None
         self.demo, self.paused, self.mode = demo, False, 'Línea'
         self.device_ids = []
         self.buttons = []
         plt.rcParams.update({'font.family':'sans-serif', 'text.color':INK, 'axes.labelcolor':INK})
-        self.fig = plt.figure(figsize=(12,8), facecolor=BG)
+        self.fig = plt.figure(figsize=(12,8), facecolor=BG, FigureClass=InstrumentFigure)
         self.fig.canvas.manager.set_window_title('Iyari Gomez · BlackMamba RECORDS')
         self.fig.text(.055,.92,'Iyari Gomez',fontsize=28,weight='bold')
         self.fig.text(.37,.925,'BlackMamba RECORDS',fontsize=12,color=MUTED)
@@ -89,10 +126,16 @@ class Onda:
         self.apply_style()
         self.fig.canvas.mpl_connect('key_press_event',self.key)
         self.fig.canvas.mpl_connect('close_event',lambda event:self.close())
+        for event in ('resize_event','button_press_event','button_release_event','motion_notify_event','key_press_event'):
+            self.fig.canvas.mpl_connect(event,self.fig.invalidate)
+        self.width.on_changed(self.update_widths)
+        self.update_widths(self.width.val)
 
     def apply_style(self):
+        self.fig.invalidate()
         bg,panel,ink,muted = THEMES[self.preferences['theme']]
         accent=self.preferences['accent']
+        self.base_hue=rgb_to_hsv(to_rgb(accent))[0]
         self.fig.set_facecolor(bg)
         self.background.clear(); self.background.set_axis_off()
         y,x=np.mgrid[0:400,0:600]
@@ -193,14 +236,25 @@ class Onda:
         slider.label.set_color(MUTED); slider.valtext.set_color(INK)
         return slider
 
+    def update_widths(self, value):
+        for i,line in enumerate(self.lines):
+            line.set_linewidth(max(.5,value-i*.15))
+
+    def enable_fast_render(self):
+        self.fig.dynamic_artists = (*reversed(self.lines),self.metric)
+        for artist in self.fig.dynamic_artists: artist.set_animated(True)
+        self.fig.fast_render = True
+        self.fig.invalidate()
+
     def close(self):
         if self.stream is not None:
             self.stream.stop(); self.stream.close(); self.stream=None
 
     def start(self,event=None):
+        self.fig.invalidate()
         self.close()
         try:
-            self.stream=sd.InputStream(channels=1,samplerate=44100,blocksize=2048,callback=self.audio)
+            self.stream=sd.InputStream(channels=1,samplerate=44100,blocksize=512,latency='low',callback=self.audio)
             self.stream.start(); self.demo=False; self.history.clear()
             self.status.set_text('MICRÓFONO ACTIVO · entrada predeterminada del sistema')
         except Exception as exc:
@@ -209,17 +263,26 @@ class Onda:
             print(f'Audio: {exc}',flush=True)
 
     def audio(self,data,frames,time,status):
+        incoming=data[:,0]
         with self.lock:
-            self.buffer=data[:,0].copy()
-        if status: print(status,flush=True)
+            count=min(len(incoming),len(self.buffer))
+            self.buffer[:-count]=self.buffer[count:]
+            self.buffer[-count:]=incoming[-count:]
+        self.audio_status = str(status) if status else ''
 
     def toggle_demo(self,event=None):
+        self.fig.invalidate()
         self.close(); self.demo=True; self.history.clear()
         self.status.set_text('DEMO · señal sintética / no es audio del micrófono')
 
     def pause(self,event=None):
         self.paused=not self.paused
         self.pause_btn.label.set_text('Continuar' if self.paused else 'Pausar')
+        self.fig.invalidate()
+        self.fig.canvas.draw_idle()
+        if hasattr(self,'animation'):
+            if self.paused: self.animation.event_source.stop()
+            else: self.animation.event_source.start()
 
     def key(self,event):
         if event.key in ('o','O'): self.radio.set_active(1)
@@ -227,6 +290,7 @@ class Onda:
         elif event.key in ('p','P'): self.pause()
 
     def set_mode(self,mode):
+        self.fig.invalidate()
         self.mode=mode; self.history.clear()
         self.ax.set_xlim((-1.5,1.5) if mode=='Círculo' else (0,46.44))
         self.ax.set_ylim(-1.5,1.5)
@@ -235,31 +299,41 @@ class Onda:
 
     def update(self,frame):
         if self.paused: return self.lines
+        now=time.perf_counter()-self.started_at
+        self.color_phase += max(0,now-self.last_color_at)*self.speed.val*(1000/30)
+        self.last_color_at=now
         with self.lock: data=self.buffer.copy()
         if self.demo:
-            t=np.arange(2048)/44100
-            data=.45*np.sin(2*np.pi*(220+80*np.sin(frame/70))*t+frame*.1)
-        rms=float(np.sqrt(np.mean(data**2)))
-        self.metric.set_text(f'{20*np.log10(max(rms,1e-6)):.1f} dBFS')
-        self.metric.set_color('#ff6c78' if np.max(np.abs(data))>=.99 else THEMES[self.preferences['theme']][2])
-        self.history.appendleft(data*self.gain.val)
+            data=.45*np.sin(2*np.pi*(220+80*np.sin(now/2.1))*self.sample_t+now*3.33)
+        if now-self.last_metric_at>=.1:
+            rms=float(np.sqrt(np.mean(data**2)))
+            self.metric.set_text(f'{20*np.log10(max(rms,1e-6)):.1f} dBFS')
+            self.metric.set_color('#ff6c78' if np.max(np.abs(data))>=.99 else THEMES[self.preferences['theme']][2])
+            self.last_metric_at=now
+        wave=data[self.display_indices]*self.gain.val
+        # Keep trail duration stable even when the render rate changes.
+        if now-self.last_trail_at>=.03 or not self.history:
+            self.history.appendleft(wave)
+            self.last_trail_at=now
+        colors=hsv_to_rgb(np.column_stack(((self.base_hue+self.color_phase+np.arange(9)*.035)%1,
+                                          np.full(9,.72),np.ones(9))))
         for i,line in enumerate(self.lines):
             if i>=len(self.history): continue
-            wave=self.history[i]
-            from matplotlib.colors import to_rgb, rgb_to_hsv
-            hue=rgb_to_hsv(to_rgb(self.preferences['accent']))[0]
-            line.set_color(hsv_to_rgb(((hue+frame*self.speed.val+i*.035)%1,.72,1)))
-            line.set_linewidth(max(.5,self.width.val-i*.15))
+            signal=wave if i==0 else self.history[i]
+            line.set_color(colors[i])
             if self.mode=='Círculo':
-                theta=np.linspace(0,2*np.pi,len(wave)); radius=.85-i*.025+wave*.35
-                line.set_data(radius*np.cos(theta),radius*np.sin(theta))
-            else: line.set_data(np.arange(len(wave))/44.1,wave-i*.025)
+                radius=.85-i*.025+signal*.35
+                line.set_data(radius*self.circle_cos,radius*self.circle_sin)
+            else: line.set_data(self.line_x,signal-i*.025)
         return self.lines
 
     def run(self):
-        self.animation=FuncAnimation(self.fig,self.update,interval=30,blit=False,cache_frame_data=False)
-        plt.show()
-        self.close()
+        self.enable_fast_render()
+        self.animation=FuncAnimation(self.fig,self.update,interval=16,blit=False,cache_frame_data=False)
+        try:
+            plt.show()
+        finally:
+            self.close()
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()

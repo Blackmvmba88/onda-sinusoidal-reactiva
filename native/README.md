@@ -35,3 +35,9 @@ El build verifica la firma con `codesign --verify --strict`. El acceso físico a
 Pulsa **Personalizar**. Edita ambos pies de página y confirma con Enter para verlos en la ventana principal. Puedes vaciarlos para ocultarlos. Elige un tema (Oscuro, Plata, Morado u Océano), una textura (Lisa, Grano, Cuadrícula u Ondas) y un acento hexadecimal `#RRGGBB`. El acento controla el inicio del ciclo cromático de las ondas y los controles. **Guardar** conserva las opciones para próximas aperturas.
 
 Las preferencias se guardan fuera de la aplicación en `~/Library/Application Support/BlackMamba/ONDA/preferences.json`. No se incluyen en el repositorio ni en el instalador. La decoración y los botones de la barra de título pertenecen a macOS; los temas y texturas afectan al contenido de la ventana.
+
+## Render optimizado (v1.2)
+
+El fondo, la textura y los controles se rasterizan cuando cambian. Las ondas y el medidor se actualizan sobre esa imagen; el tamaño y las interacciones invalidan la caché. Se conservan las 2048 muestras, con coordenadas circulares precalculadas, colores vectorizados y medidor a 10 Hz. El temporizador apunta a 60 FPS; la tasa efectiva depende del tamaño, pantalla y carga del Mac. El color y las estelas usan tiempo real. La captura solicita bloques de 512 muestras y baja latencia, manteniendo una ventana de 2048 muestras. Los buffers de entrada se copian bajo bloqueo; no se imprime desde el callback.
+
+Mediciones comparativas de rasterización (sin compositor macOS ni audio físico): `native/benchmarks/render-1.2.json`. No equivalen a FPS medidos en pantalla.
